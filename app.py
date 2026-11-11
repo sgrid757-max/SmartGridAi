@@ -17,6 +17,7 @@ from ml.prediction import predict_grid_status
 from rag.smartgrid_pipeline import run_smartgrid, load_knowledge_base
 from rag.retrieval import retrieve_documents
 from rag.llm import generate_answer
+from copilot_engine import ask_copilot
 
 # ==========================================
 # 1. PAGE CONFIGURATION
@@ -30,353 +31,736 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. CUSTOM CSS STYLING
+# 2. DESIGN SYSTEM (CSS)
 # ==========================================
 
 st.markdown("""
 <style>
-.stApp {
-    background-color: #0b1220;
-    color: #e5e7eb;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    --bg:            #0a0f1a;
+    --surface:       #111826;
+    --surface-2:     #151d2e;
+    --surface-3:     #1b2539;
+    --border:        #212c42;
+    --border-strong: #2d3b57;
+    --text:          #e6e9f0;
+    --text-muted:    #8b97ad;
+    --text-faint:    #62708a;
+    --accent:        #f5b83d;
+    --accent-soft:   rgba(245, 184, 61, 0.12);
+    --accent-hover:  #ffc94f;
+    --good:          #4ade80;
+    --good-soft:     rgba(74, 222, 128, 0.10);
+    --bad:           #f87171;
+    --bad-soft:      rgba(248, 113, 113, 0.10);
+    --radius:        12px;
 }
 
+/* ---------- Base ---------- */
+html, body, .stApp, [data-testid="stAppViewContainer"] {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+.block-container {
+    padding-top: 2.2rem;
+    padding-bottom: 3rem;
+    max-width: 1240px;
+}
+
+#MainMenu, footer { visibility: hidden; }
+header[data-testid="stHeader"] { background: transparent; }
+
+h1, h2, h3, h4, h5 {
+    color: var(--text) !important;
+    letter-spacing: -0.015em;
+    font-weight: 650 !important;
+}
+
+p, li, span, label { color: inherit; }
+
+hr { border-color: var(--border) !important; margin: 1.4rem 0 !important; }
+
+/* ---------- Header ---------- */
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.brand-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    background: var(--accent);
+    color: #1a1305;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 6px 20px rgba(245, 184, 61, 0.22);
+}
+
+.brand-title {
+    font-size: 26px;
+    font-weight: 750;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.brand-title em {
+    font-style: normal;
+    color: var(--accent);
+}
+
+.brand-sub {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    margin-top: 3px;
+}
+
+.status-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 550;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+}
+
+.status-pill::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--good);
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+}
+
+/* ---------- Tabs ---------- */
+div[data-baseweb="tab-list"] {
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+}
+
+button[data-baseweb="tab"] {
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    font-weight: 550 !important;
+    font-size: 14px !important;
+    padding: 10px 16px !important;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+button[data-baseweb="tab"]:hover { color: var(--text) !important; }
+
+button[data-baseweb="tab"][aria-selected="true"] { color: var(--accent) !important; }
+
+div[data-baseweb="tab-highlight"] { background-color: var(--accent) !important; height: 2px !important; }
+div[data-baseweb="tab-border"] { display: none; }
+
+/* ---------- Sidebar ---------- */
 [data-testid="stSidebar"] {
-    background-color: #111c30;
+    background-color: var(--surface);
+    border-right: 1px solid var(--border);
 }
 
-[data-testid="stSidebar"] * {
-    color: #e5e7eb;
+[data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] h2 {
+    font-size: 15px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted) !important;
+    font-weight: 650 !important;
 }
 
-.main-title {
-    font-size: 38px;
-    font-weight: 800;
-    color: #f8fafc;
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"] { color: var(--text-faint); }
+
+/* ---------- Section headings ---------- */
+.section-title {
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    margin: 6px 0 14px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title::before {
+    content: "";
+    width: 3px;
+    height: 16px;
+    border-radius: 2px;
+    background: var(--accent);
+}
+
+/* ---------- Metric cards ---------- */
+.metric-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    min-height: 118px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.metric-box:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+}
+
+.metric-label {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+}
+
+.metric-value {
+    color: var(--text);
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-top: 8px;
+    font-variant-numeric: tabular-nums;
+}
+
+.metric-note {
+    color: var(--text-faint);
+    font-size: 12.5px;
+    margin-top: 6px;
+}
+
+/* ---------- Risk banners ---------- */
+.status-high, .status-normal {
+    padding: 14px 18px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 14.5px;
+    line-height: 1.5;
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.subtitle {
-    color: #94a3b8;
-    font-size: 15px;
-    margin-top: -6px;
-    margin-bottom: 12px;
-}
-
-.badge-tag {
-    background-color: #172840;
-    color: #38bdf8;
-    padding: 3px 10px;
-    border-radius: 9999px;
-    font-size: 12px;
-    font-weight: 600;
-    border: 1px solid #263a55;
-    display: inline-block;
-}
-
-.section-title {
-    color: #f8fafc;
-    font-size: 22px;
-    font-weight: 700;
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
-
-.metric-box {
-    background: linear-gradient(135deg, #172840, #142033);
-    border: 1px solid #263a55;
-    padding: 20px;
-    border-radius: 14px;
-    min-height: 125px;
-}
-
-.metric-label {
-    color: #94a3b8;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.metric-value {
-    color: #f8fafc;
-    font-size: 26px;
-    font-weight: 750;
-    margin-top: 6px;
-}
-
-.metric-note {
-    color: #94a3b8;
-    font-size: 12px;
-    margin-top: 4px;
-}
-
 .status-high {
-    background: linear-gradient(135deg, #451c29, #2b1119);
-    color: #fca5a5;
-    border: 1px solid #9f3349;
-    padding: 16px 20px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    background: var(--bad-soft);
+    color: #fecaca;
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    border-left: 4px solid var(--bad);
 }
 
 .status-normal {
-    background: linear-gradient(135deg, #12352c, #0a201b);
-    color: #86efac;
-    border: 1px solid #267653;
-    padding: 16px 20px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    background: var(--good-soft);
+    color: #bbf7d0;
+    border: 1px solid rgba(74, 222, 128, 0.30);
+    border-left: 4px solid var(--good);
 }
 
+/* ---------- Agent derivation card ---------- */
 .agent-card {
-    background-color: #121e33;
-    border: 1px solid #1e3a5f;
-    border-radius: 12px;
-    padding: 16px;
-    margin-top: 10px;
-    margin-bottom: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin: 12px 0 14px 0;
+}
+
+.agent-card-title {
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+}
+
+.agent-card-title code {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: none;
+    letter-spacing: 0;
 }
 
 .agent-pill {
-    background-color: #182b47;
-    border: 1px solid #2b4c77;
-    color: #bae6fd;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
     padding: 4px 10px;
-    border-radius: 8px;
+    border-radius: 7px;
     font-size: 12px;
-    font-family: monospace;
-    display: inline-block;
-    margin: 3px 4px 3px 0px;
+    margin: 3px 5px 3px 0;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
 }
 
+.agent-pill b {
+    color: var(--text-faint);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 11px;
+}
+
+/* ---------- Buttons ---------- */
 .stButton > button {
-    background-color: #087fce;
-    color: white;
+    background-color: var(--accent);
+    color: #1a1305;
     border-radius: 9px;
-    border: none;
-    height: 44px;
-    font-weight: 700;
-    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    height: 42px;
+    font-weight: 650;
+    font-size: 14px;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
 }
 
 .stButton > button:hover {
-    background-color: #0b9bf0;
-    color: white;
-    box-shadow: 0 4px 12px rgba(8, 127, 206, 0.3);
+    background-color: var(--accent-hover);
+    color: #1a1305;
+    border-color: transparent;
+    box-shadow: 0 4px 16px rgba(245, 184, 61, 0.25);
 }
 
-.chip-btn > button {
-    background-color: #152238 !important;
-    border: 1px solid #263a55 !important;
-    color: #94a3b8 !important;
+.stButton > button:active { transform: scale(0.985); }
+
+.stButton > button p { color: inherit !important; }
+
+/* Quick-scenario chips (secondary buttons inside the chat tab) */
+.chip-row .stButton > button {
+    background-color: var(--surface) !important;
+    color: var(--text-muted) !important;
+    border: 1px solid var(--border) !important;
     font-size: 13px !important;
-    height: 38px !important;
-    border-radius: 20px !important;
+    font-weight: 500 !important;
+    height: auto !important;
+    min-height: 44px;
+    padding: 8px 12px !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    white-space: normal;
+    line-height: 1.3;
 }
 
-.chip-btn > button:hover {
-    background-color: #1e3557 !important;
-    color: #38bdf8 !important;
-    border-color: #38bdf8 !important;
+.chip-row .stButton > button:hover {
+    background-color: var(--surface-3) !important;
+    color: var(--accent) !important;
+    border-color: var(--accent) !important;
 }
 
+.chip-row .stButton > button p { color: inherit !important; }
+
+.clear-row .stButton > button {
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+}
+
+.clear-row .stButton > button:hover {
+    color: var(--bad) !important;
+    border-color: rgba(248, 113, 113, 0.5) !important;
+}
+
+/* ---------- Chat messages ---------- */
+[data-testid="stChatMessage"] {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    gap: 14px;
+}
+
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+    background-color: var(--surface-3);
+    border-color: var(--border-strong);
+}
+
+[data-testid="stChatMessage"] p,
+[data-testid="stChatMessage"] li {
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 14.5px;
+}
+
+[data-testid="stChatMessage"] h3 {
+    font-size: 18px !important;
+    margin-top: 0 !important;
+}
+
+[data-testid="stChatMessage"] code {
+    background: var(--surface-3);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-size: 12.5px;
+}
+
+/* ---------- Native metrics ---------- */
+[data-testid="stMetric"] {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+[data-testid="stMetricLabel"] p {
+    color: var(--text-muted) !important;
+    font-size: 11.5px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600 !important;
+}
+
+[data-testid="stMetricValue"] {
+    color: var(--text) !important;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Alerts ---------- */
+div[data-testid="stAlert"] {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background-color: var(--surface-2);
+}
+
+/* ---------- Expanders ---------- */
 div[data-testid="stExpander"] {
-    background-color: #111c30;
-    border: 1px solid #263a55;
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
     border-radius: 10px;
 }
 
-hr {
-    border-color: #263a55;
-}
+div[data-testid="stExpander"] summary { font-weight: 550; font-size: 13.5px; }
 
-/* Chat bubble styling */
-.user-msg {
-    background-color: #172c4c;
-    border: 1px solid #294670;
-    border-radius: 12px 12px 2px 12px;
-    padding: 12px 16px;
-    margin-bottom: 12px;
-    color: #f1f5f9;
-}
-
-.assistant-msg {
-    background-color: #121c2e;
-    border: 1px solid #20334e;
-    border-radius: 12px 12px 12px 2px;
-    padding: 14px 18px;
-    margin-bottom: 14px;
-    color: #e2e8f0;
-}
-
-/* ==========================================
-   INPUT BOXES & TYPING TEXT VISIBILITY FIX
-   ========================================== */
-
-/* Universal input container styling */
+/* ---------- Inputs ---------- */
 div[data-baseweb="input"],
 div[data-baseweb="base-input"],
 div[data-baseweb="textarea"],
 div[data-baseweb="select"] > div {
-    background-color: #152238 !important;
-    border: 1.5px solid #2d456b !important;
+    background-color: var(--surface-2) !important;
+    border: 1px solid var(--border-strong) !important;
     border-radius: 9px !important;
-    color: #ffffff !important;
+    color: var(--text) !important;
 }
 
 div[data-baseweb="input"]:focus-within,
 div[data-baseweb="base-input"]:focus-within,
 div[data-baseweb="textarea"]:focus-within,
 div[data-baseweb="select"] > div:focus-within {
-    border-color: #38bdf8 !important;
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25) !important;
-    background-color: #1a2a44 !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px var(--accent-soft) !important;
 }
 
-/* Text inputs, number inputs, textareas, date inputs */
-input,
-textarea,
-input[type="text"],
-input[type="number"],
-input[type="password"],
-input[type="date"] {
-    background-color: #152238 !important;
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
-    font-size: 14.5px !important;
-    font-weight: 500 !important;
-    caret-color: #38bdf8 !important;
-}
-
-/* Inner inputs inside BaseWeb wrappers */
-div[data-baseweb="input"] input,
-div[data-baseweb="base-input"] input,
-div[data-baseweb="textarea"] textarea {
+input, textarea {
     background-color: transparent !important;
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
-    caret-color: #38bdf8 !important;
+    color: var(--text) !important;
+    -webkit-text-fill-color: var(--text) !important;
+    font-size: 14px !important;
+    caret-color: var(--accent) !important;
 }
 
-/* Placeholders */
-input::placeholder,
-textarea::placeholder,
-div[data-baseweb="input"] input::placeholder,
-div[data-baseweb="textarea"] textarea::placeholder {
-    color: #94a3b8 !important;
-    -webkit-text-fill-color: #94a3b8 !important;
-    opacity: 0.9 !important;
+input::placeholder, textarea::placeholder {
+    color: var(--text-faint) !important;
+    -webkit-text-fill-color: var(--text-faint) !important;
+    opacity: 1 !important;
 }
 
-/* Number input increment/decrement buttons */
 div[data-testid="stNumberInput"] button {
-    background-color: #1e3352 !important;
-    color: #ffffff !important;
-    border: 1px solid #2d456b !important;
+    background-color: var(--surface-3) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border-strong) !important;
 }
 
 div[data-testid="stNumberInput"] button:hover {
-    background-color: #2b4975 !important;
-    color: #38bdf8 !important;
+    color: var(--accent) !important;
+    background-color: var(--surface-3) !important;
 }
 
-/* Labels above inputs */
 div[data-testid="stWidgetLabel"] label,
 div[data-testid="stWidgetLabel"] p {
-    color: #cbd5e1 !important;
-    font-size: 13.5px !important;
-    font-weight: 600 !important;
+    color: var(--text-muted) !important;
+    font-size: 12.5px !important;
+    font-weight: 550 !important;
 }
 
-/* ==========================================
-   STREAMLIT CHAT INPUT & PROMPT BOX FIX
-   ========================================== */
+/* Slider */
+div[data-testid="stSlider"] [role="slider"] { background-color: var(--accent) !important; }
+div[data-testid="stSlider"] div[data-testid="stThumbValue"] { color: var(--accent) !important; }
 
-/* Main chat input container */
+/* Select dropdown */
+div[data-baseweb="select"] * { color: var(--text) !important; }
+
+div[data-baseweb="popover"],
+div[data-baseweb="menu"],
+ul[role="listbox"] {
+    background-color: var(--surface-2) !important;
+    border: 1px solid var(--border-strong) !important;
+    border-radius: 9px !important;
+}
+
+li[role="option"] {
+    color: var(--text) !important;
+    background-color: transparent !important;
+}
+
+li[role="option"]:hover,
+li[role="option"][aria-selected="true"] {
+    background-color: var(--surface-3) !important;
+    color: var(--accent) !important;
+}
+
+/* ---------- Chat input ---------- */
 div[data-testid="stChatInput"] {
     background-color: transparent !important;
     padding-bottom: 8px !important;
 }
 
 div[data-testid="stChatInput"] > div {
-    background-color: #152238 !important;
-    border: 1.5px solid #2d456b !important;
+    background-color: var(--surface-2) !important;
+    border: 1px solid var(--border-strong) !important;
     border-radius: 14px !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35) !important;
 }
 
 div[data-testid="stChatInput"] > div:focus-within {
-    border-color: #38bdf8 !important;
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3), 0 4px 16px rgba(0, 0, 0, 0.45) !important;
-    background-color: #1a2a44 !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px var(--accent-soft), 0 6px 24px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* Chat input textarea itself */
 div[data-testid="stChatInput"] textarea {
-    background-color: transparent !important;
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
-    font-size: 15px !important;
-    font-weight: 500 !important;
-    caret-color: #38bdf8 !important;
+    font-size: 14.5px !important;
     line-height: 1.5 !important;
 }
 
-div[data-testid="stChatInput"] textarea::placeholder {
+div[data-testid="stChatInput"] button {
+    color: var(--accent) !important;
+    background-color: transparent !important;
+}
+
+div[data-testid="stChatInput"] button:hover { background-color: var(--accent-soft) !important; }
+div[data-testid="stChatInput"] button svg { fill: var(--accent) !important; }
+
+/* ---------- Code / JSON ---------- */
+pre, code { font-family: 'JetBrains Mono', monospace !important; }
+
+[data-testid="stCode"], [data-testid="stJson"] {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+/* ---------- Footer ---------- */
+.app-footer {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 12px;
+    line-height: 1.7;
+    padding-top: 4px;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+    .block-container { padding-top: 1.2rem; }
+    .brand-title { font-size: 21px; }
+    .metric-value { font-size: 22px; }
+}
+
+/* ---------- FLOATING COPILOT ACTION BUTTON (FAB - WHEN COLLAPSED) ---------- */
+div[class*="st-key-floating_copilot_fab_container"] {
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    z-index: 999999 !important;
+    width: auto !important;
+    display: block !important;
+}
+
+div[class*="st-key-floating_copilot_fab_container"] button {
+    background: linear-gradient(135deg, #f5b83d 0%, #e08b1b 100%) !important;
+    color: #080d19 !important;
+    font-weight: 750 !important;
+    font-size: 14.5px !important;
+    border-radius: 999px !important;
+    padding: 12px 22px !important;
+    border: 2px solid #fde68a !important;
+    box-shadow: 0 10px 32px rgba(245, 184, 61, 0.45), 0 0 18px rgba(245, 184, 61, 0.3) !important;
+    cursor: pointer !important;
+    letter-spacing: -0.01em !important;
+    animation: fab-pulse 2.6s infinite !important;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+div[class*="st-key-floating_copilot_fab_container"] button:hover {
+    transform: translateY(-3px) scale(1.05) !important;
+    box-shadow: 0 14px 40px rgba(245, 184, 61, 0.7), 0 0 26px rgba(245, 184, 61, 0.5) !important;
+    background: linear-gradient(135deg, #ffd066 0%, #f5b83d 100%) !important;
+}
+
+@keyframes fab-pulse {
+    0% { box-shadow: 0 8px 24px rgba(245, 184, 61, 0.45), 0 0 0 0 rgba(245, 184, 61, 0.7); }
+    70% { box-shadow: 0 10px 30px rgba(245, 184, 61, 0.55), 0 0 0 12px rgba(245, 184, 61, 0); }
+    100% { box-shadow: 0 8px 24px rgba(245, 184, 61, 0.45), 0 0 0 0 rgba(245, 184, 61, 0); }
+}
+
+/* ---------- FLOATING AI CHATBOT WINDOW (SAME PAGE DOCK) ---------- */
+div[class*="st-key-floating_copilot_window"] {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    width: 420px !important;
+    max-width: calc(100vw - 28px) !important;
+    height: 520px !important;
+    max-height: calc(100vh - 36px) !important;
+    background-color: #0d1527 !important;
+    border: 2px solid #2d3b57 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.92), 0 0 30px rgba(245, 184, 61, 0.25) !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 14px 16px 12px 16px !important;
+    backdrop-filter: blur(16px) !important;
+    animation: copilot-pop-in 0.22s ease-out !important;
+}
+
+/* Explicit high-visibility input styling */
+div[data-testid="stTextInput"] div[data-baseweb="input"],
+div[data-testid="stTextInput"] div[data-baseweb="base-input"] {
+    background-color: #111826 !important;
+    border: 1.5px solid #38bdf8 !important;
+    border-radius: 9px !important;
+}
+
+div[data-testid="stTextInput"] input {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-size: 14.5px !important;
+    padding: 8px 12px !important;
+}
+
+div[data-testid="stTextInput"] input::placeholder {
     color: #94a3b8 !important;
     -webkit-text-fill-color: #94a3b8 !important;
 }
 
-/* Chat input send button */
-div[data-testid="stChatInput"] button {
-    color: #38bdf8 !important;
-    background-color: transparent !important;
-    border: none !important;
+@keyframes copilot-pop-in {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-div[data-testid="stChatInput"] button:hover {
-    color: #7dd3fc !important;
-    background-color: #1e3352 !important;
-}
-
-div[data-testid="stChatInput"] button svg {
-    fill: #38bdf8 !important;
-}
-
-/* Selectbox dropdown options menu */
-div[data-baseweb="select"] * {
-    color: #ffffff !important;
-}
-
-div[data-baseweb="popover"],
-div[data-baseweb="menu"],
-ul[role="listbox"] {
-    background-color: #152238 !important;
-    border: 1px solid #2d456b !important;
+/* Top bar buttons (clear & close) inside the floating window */
+div[class*="st-key-copilot_close_top"] button,
+div[class*="st-key-copilot_clear_top"] button {
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-muted) !important;
     border-radius: 8px !important;
+    height: 32px !important;
+    padding: 2px 8px !important;
+    font-size: 13px !important;
+    box-shadow: none !important;
+    min-height: 32px !important;
 }
 
-li[role="option"] {
-    color: #e2e8f0 !important;
-    background-color: #152238 !important;
+div[class*="st-key-copilot_close_top"] button:hover {
+    color: #f87171 !important;
+    border-color: #f87171 !important;
+    background: rgba(248, 113, 113, 0.12) !important;
 }
 
-li[role="option"]:hover,
-li[role="option"][aria-selected="true"] {
-    background-color: #1e3a5f !important;
-    color: #38bdf8 !important;
+div[class*="st-key-copilot_clear_top"] button:hover {
+    color: var(--accent) !important;
+    border-color: var(--accent) !important;
+    background: var(--accent-soft) !important;
+}
+
+/* Quick prompt chips inside floating copilot */
+div[class*="st-key-copilot_chip"] button {
+    background: #151d2e !important;
+    border: 1px solid #212c42 !important;
+    color: #8b97ad !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    box-shadow: none !important;
+    font-weight: 550 !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+}
+
+div[class*="st-key-copilot_chip"] button:hover {
+    background: #1b2539 !important;
+    border-color: #f5b83d !important;
+    color: #f5b83d !important;
+}
+
+/* Scroll area inside floating copilot */
+div[class*="st-key-floating_copilot_window"] [data-testid="stVerticalBlockBorderWrapper"] {
+    background: #090e1c !important;
+    border: 1px solid #1c273e !important;
+    border-radius: 12px !important;
 }
 </style>
 """, unsafe_allow_html=True)
+
+
+# ==========================================
+# UI HELPERS (presentation only)
+# ==========================================
+
+def metric_card(label, value, note):
+    return f"""
+    <div class="metric-box">
+        <div class="metric-label">{label}</div>
+        <div class="metric-value">{value}</div>
+        <div class="metric-note">{note}</div>
+    </div>
+    """
+
+
+def section(title):
+    st.markdown(f'<div class="section-title">{title}</div>', unsafe_allow_html=True)
+
+
+def pill(label, value):
+    return f'<span class="agent-pill"><b>{label}</b>{value}</span>'
+
 
 # ==========================================
 # 3. SESSION STATE INITIALIZATION
@@ -405,10 +789,10 @@ if "chat_messages" not in st.session_state:
         {
             "role": "assistant",
             "content": (
-                "👋 Hello! I am **SmartGrid AI Assistant**, powered by **Agentic AI & ERCOT Grid Intelligence**.\n\n"
-                "You can:\n"
-                "1. **Describe conditions in natural language** (e.g. *'Saturday Nov 14 2026, Dallas, high 35C, low 24C, avg 29C, humidity 60%, wind 4 m/s, no rain, load 52000 MW'*)\n"
-                "2. The **Agentic AI** will extract the features, invoke the `derive` tool (computing Cooling Degree Days, Temp Range, Weekend flag, ERCOT Zone), and forecast grid stress and electricity demand.\n"
+                "Hello! I'm the **SmartGrid AI Assistant**, powered by Agentic AI and ERCOT grid intelligence.\n\n"
+                "Here's what I can do:\n"
+                "1. **Describe conditions in plain language**, for example *'Saturday Nov 14 2026, Dallas, high 35C, low 24C, avg 29C, humidity 60%, wind 4 m/s, no rain, load 52000 MW'*.\n"
+                "2. The **Agentic AI** extracts the features and calls the `derive` tool (Cooling Degree Days, temperature range, weekend flag, ERCOT zone), then forecasts grid stress and electricity demand.\n"
                 "3. **Ask domain questions** about ERCOT reserves, EEA levels, weather impact, or consumer advisories."
             ),
             "meta": None
@@ -418,22 +802,44 @@ if "chat_messages" not in st.session_state:
 if "pending_prompt" not in st.session_state:
     st.session_state.pending_prompt = None
 
+if "floating_chat_history" not in st.session_state:
+    st.session_state.floating_chat_history = [
+        {
+            "role": "assistant",
+            "content": (
+                "Hello! I am your **AI Chatbot**.\n\n"
+                "Ask me anything in the input box below and click **Submit**, and I will provide the best answer!"
+            ),
+            "sources": []
+        }
+    ]
+
+if "copilot_open" not in st.session_state:
+    st.session_state.copilot_open = False
+
+if "dock_pending" not in st.session_state:
+    st.session_state.dock_pending = False
+
 # ==========================================
 # 4. HEADER
 # ==========================================
 
-col_h1, col_h2 = st.columns([0.7, 0.3])
-with col_h1:
-    st.markdown('<div class="main-title">⚡ SmartGrid AI <span class="badge-tag">Agentic AI & RAG</span></div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">Autonomous Electricity Demand Forecasting, Tool-Calling Intelligence & Consumer Advisory Platform</div>', unsafe_allow_html=True)
-
-with col_h2:
-    st.markdown("""
-    <div style="text-align: right; padding-top: 10px;">
-        <span class="badge-tag" style="background-color: #064e3b; color: #6ee7b7; border-color: #047857;">● ML Models Active</span>
-        <span class="badge-tag" style="background-color: #1e3a5f; color: #7dd3fc; border-color: #0284c7;">● Agentic Tools Ready</span>
+st.markdown("""
+<div class="app-header">
+    <div class="brand">
+        <div class="brand-mark">⚡</div>
+        <div>
+            <div class="brand-title">SmartGrid <em>AI</em></div>
+            <div class="brand-sub">Electricity demand forecasting, tool-calling intelligence and consumer advisory</div>
+        </div>
     </div>
-    """, unsafe_allow_html=True)
+    <div class="status-row">
+        <span class="status-pill">ML models active</span>
+        <span class="status-pill">Agentic tools ready</span>
+        <span class="status-pill">Floating AI Copilot active</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 st.divider()
 
@@ -441,8 +847,8 @@ st.divider()
 # 5. SIDEBAR CONTROLS
 # ==========================================
 
-st.sidebar.markdown("### ⚙️ System Settings")
-st.sidebar.caption("Configure environment, models & manual forecaster.")
+st.sidebar.markdown("### System Settings")
+st.sidebar.caption("Configure models, API keys and the manual forecaster.")
 
 # Model & API settings expander
 with st.sidebar.expander("🔑 Agent & API Configuration", expanded=False):
@@ -454,15 +860,27 @@ with st.sidebar.expander("🔑 Agent & API Configuration", expanded=False):
     )
     if groq_key_input:
         os.environ["GROQ_API_KEY"] = groq_key_input
+        st.session_state["groq_api_key"] = groq_key_input
 
     gemini_key_input = st.text_input(
         "Gemini API Key",
         value=os.getenv("GEMINI_API_KEY", ""),
         type="password",
-        help="Used for RAG grid advisory generation."
+        help="Used for RAG grid advisory generation and Copilot answers."
     )
     if gemini_key_input:
         os.environ["GEMINI_API_KEY"] = gemini_key_input
+        st.session_state["gemini_api_key"] = gemini_key_input
+
+    openai_key_input = st.text_input(
+        "OpenAI API Key (Optional)",
+        value=os.getenv("OPENAI_API_KEY", ""),
+        type="password",
+        help="Used for OpenAI GPT-4o-mini Copilot queries."
+    )
+    if openai_key_input:
+        os.environ["OPENAI_API_KEY"] = openai_key_input
+        st.session_state["openai_api_key"] = openai_key_input
 
     agent_model = st.selectbox(
         "Agentic LLM Model",
@@ -474,10 +892,14 @@ with st.sidebar.expander("🔑 Agent & API Configuration", expanded=False):
 st.sidebar.divider()
 
 # Manual location & weather inputs
-st.sidebar.subheader("📍 Location Settings")
+st.sidebar.markdown("### Location")
 zone = st.sidebar.selectbox("ERCOT Zone", ["COAST", "NORTH", "SOUTH", "WEST"], index=["COAST", "NORTH", "SOUTH", "WEST"].index(st.session_state.last_input.get("ERCOT_zone", "NORTH")))
-latitude = st.sidebar.number_input("Latitude", value=float(st.session_state.last_input.get("latitude", 32.75)), format="%.5f")
-longitude = st.sidebar.number_input("Longitude", value=float(st.session_state.last_input.get("longitude", -96.77)), format="%.5f")
+
+loc_c1, loc_c2 = st.sidebar.columns(2)
+with loc_c1:
+    latitude = st.number_input("Latitude", value=float(st.session_state.last_input.get("latitude", 32.75)), format="%.5f")
+with loc_c2:
+    longitude = st.number_input("Longitude", value=float(st.session_state.last_input.get("longitude", -96.77)), format="%.5f")
 
 try:
     init_date = date.fromisoformat(st.session_state.last_input.get("date", date.today().isoformat()))
@@ -487,14 +909,24 @@ except Exception:
 selected_date = st.sidebar.date_input("Prediction Date", value=init_date)
 
 st.sidebar.divider()
-st.sidebar.subheader("🌦️ Weather Conditions")
+st.sidebar.markdown("### Weather Conditions")
 
 temperature_mean = st.sidebar.number_input("Average Temperature (°C)", value=float(st.session_state.last_input.get("temperature_mean", 25.0)), step=1.0)
-temperature_max = st.sidebar.number_input("Maximum Temperature (°C)", value=float(st.session_state.last_input.get("temperature_max", 32.0)), step=1.0)
-temperature_min = st.sidebar.number_input("Minimum Temperature (°C)", value=float(st.session_state.last_input.get("temperature_min", 18.0)), step=1.0)
+
+t_c1, t_c2 = st.sidebar.columns(2)
+with t_c1:
+    temperature_max = st.number_input("Max Temp (°C)", value=float(st.session_state.last_input.get("temperature_max", 32.0)), step=1.0)
+with t_c2:
+    temperature_min = st.number_input("Min Temp (°C)", value=float(st.session_state.last_input.get("temperature_min", 18.0)), step=1.0)
+
 humidity = st.sidebar.slider("Humidity (%)", min_value=0, max_value=100, value=int(st.session_state.last_input.get("humidity", 60)))
-wind_speed = st.sidebar.number_input("Wind Speed (m/s)", min_value=0.0, value=float(st.session_state.last_input.get("wind_speed_mps", 5.0)))
-precipitation = st.sidebar.number_input("Precipitation (mm)", min_value=0.0, value=float(st.session_state.last_input.get("precipitation_mm", 0.0)))
+
+w_c1, w_c2 = st.sidebar.columns(2)
+with w_c1:
+    wind_speed = st.number_input("Wind (m/s)", min_value=0.0, value=float(st.session_state.last_input.get("wind_speed_mps", 5.0)))
+with w_c2:
+    precipitation = st.number_input("Rain (mm)", min_value=0.0, value=float(st.session_state.last_input.get("precipitation_mm", 0.0)))
+
 snowfall = st.sidebar.number_input("Snowfall (cm)", min_value=0.0, value=float(st.session_state.last_input.get("snowfall_cm", 0.0)))
 
 st.sidebar.divider()
@@ -534,42 +966,41 @@ if predict_button:
 # ==========================================
 
 tab_chat, tab_dashboard, tab_inspector = st.tabs([
-    "💬 SmartGrid AI Chatbot & Agent",
-    "📊 Forecaster Dashboard",
-    "🛠️ Agentic AI Inspector (Studio)"
+    "AI Chatbot",
+    "Forecaster Dashboard",
+    "Agentic AI Inspector"
 ])
 
 # -------------------------------------------------------------
-# TAB 1: SMARTGRID AI CHATBOT
+# TAB 1: AI CHATBOT
 # -------------------------------------------------------------
 with tab_chat:
-    st.markdown("#### ⚡ Conversational Energy Intelligence")
-    st.caption("Ask questions or describe weather & grid scenarios in natural language. The Agentic AI calls tools to extract and forecast demand.")
+    section("AI Chatbot")
+    st.caption("Ask anything: describe conditions, ask general questions, or inquire about energy and grid intelligence.")
 
     # Quick prompt chips
-    st.markdown("**💡 Quick Scenarios (Click to test):**")
+    st.markdown('<div class="chip-row">', unsafe_allow_html=True)
     chip_cols = st.columns(4)
     with chip_cols[0]:
-        if st.button("🔥 Dallas Heatwave (Nov 2026)", key="chip_dallas", use_container_width=True):
+        if st.button("🔥 Dallas heatwave (Nov 2026)", key="chip_dallas", use_container_width=True):
             st.session_state.pending_prompt = "Saturday Nov 14 2026, Dallas, high 35C, low 24C, avg 29C, humidity 60%, wind 4 m/s, no rain, load 52000 MW"
     with chip_cols[1]:
-        if st.button("🌊 Houston Summer Coastal Peak", key="chip_houston", use_container_width=True):
+        if st.button("🌊 Houston summer coastal peak", key="chip_houston", use_container_width=True):
             st.session_state.pending_prompt = "July 22 2026, Houston, high 40C, low 29C, avg 34C, humidity 82%, wind 3 m/s, rain 0mm, load 68000 MW"
     with chip_cols[2]:
-        if st.button("❄️ Austin Winter Freeze", key="chip_austin", use_container_width=True):
+        if st.button("❄️ Austin winter freeze", key="chip_austin", use_container_width=True):
             st.session_state.pending_prompt = "Jan 18 2026, Austin, high 2C, low -7C, avg -3C, humidity 65%, wind 10 m/s, snowfall 3cm, load 62000 MW"
     with chip_cols[3]:
-        if st.button("❓ ERCOT EEA Alert Rules", key="chip_eea", use_container_width=True):
+        if st.button("❓ ERCOT EEA alert rules", key="chip_eea", use_container_width=True):
             st.session_state.pending_prompt = "What are the ERCOT Energy Emergency Alert (EEA) levels, reserve thresholds, and consumer actions?"
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("")
 
     # Display Chat History
     for msg_idx, msg in enumerate(st.session_state.chat_messages):
-        if msg["role"] == "user":
-            st.markdown(f'<div class="user-msg"><b>👤 You:</b><br>{msg["content"]}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="assistant-msg"><b>⚡ SmartGrid AI:</b><br>', unsafe_allow_html=True)
+        avatar = "🧑" if msg["role"] == "user" else "⚡"
+        with st.chat_message(msg["role"], avatar=avatar):
             st.markdown(msg["content"])
 
             # If message contains structured meta (from an Agentic execution)
@@ -578,25 +1009,24 @@ with tab_chat:
                 ext = meta.get("extracted", {})
                 pred = meta.get("prediction", {})
 
-                # Render Agentic Derivation Badges
-                st.markdown(f"""
-                <div class="agent-card">
-                    <div style="font-size: 13px; font-weight: 700; color: #38bdf8; margin-bottom: 8px;">
-                        🤖 AGENTIC AI EXTRACTION & DERIVED FEATURES (TOOL CALL: <code>derive()</code>)
+                if ext:
+                    pills = "".join([
+                        pill("Date", ext.get('date', 'Unknown')),
+                        pill("Zone", ext.get('zone', 'NORTH')),
+                        pill("Mean", f"{ext.get('temperature_mean')}°C"),
+                        pill("Max", f"{ext.get('temperature_max')}°C"),
+                        pill("Min", f"{ext.get('temperature_min')}°C"),
+                        pill("CDD", ext.get('CDD')),
+                        pill("Range", f"{ext.get('temp_range')}°C"),
+                        pill("Weekend", 'Yes' if ext.get('weekend') == 1 else 'No'),
+                        pill("Zone code", ext.get('ERCOT_zone_encoded')),
+                    ])
+                    st.markdown(f"""
+                    <div class="agent-card">
+                        <div class="agent-card-title">Agent extraction &amp; derived features &middot; tool call <code>derive()</code></div>
+                        <div>{pills}</div>
                     </div>
-                    <div>
-                        <span class="agent-pill">📅 Date: {ext.get('date', 'Unknown')}</span>
-                        <span class="agent-pill">📍 Zone: {ext.get('zone', 'NORTH')}</span>
-                        <span class="agent-pill">🌡️ Mean: {ext.get('temperature_mean')}°C</span>
-                        <span class="agent-pill">🔥 Max: {ext.get('temperature_max')}°C</span>
-                        <span class="agent-pill">❄️ Min: {ext.get('temperature_min')}°C</span>
-                        <span class="agent-pill">📊 CDD: {ext.get('CDD')}</span>
-                        <span class="agent-pill">↔️ Temp Range: {ext.get('temp_range')}°C</span>
-                        <span class="agent-pill">🗓️ Weekend: {'Yes' if ext.get('weekend') == 1 else 'No'}</span>
-                        <span class="agent-pill">🔢 Zone Encoded: {ext.get('ERCOT_zone_encoded')}</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
 
                 # Prediction metric summary
                 if pred:
@@ -610,20 +1040,32 @@ with tab_chat:
 
                     if ext.get("zone_usage"):
                         delta = ext["zone_usage"] - pred["predicted_usage"]
-                        st.info(f"📊 **Reported Load:** {ext['zone_usage']:,.0f} MW  |  **Model Forecast:** {pred['predicted_usage']:,.0f} MW  |  **Variance:** {delta:+,.0f} MW")
+                        st.info(f"**Reported load:** {ext['zone_usage']:,.0f} MW  |  **Model forecast:** {pred['predicted_usage']:,.0f} MW  |  **Variance:** {delta:+,.0f} MW")
 
                 # Show sources if any
                 sources = meta.get("sources", [])
                 if sources:
-                    with st.expander(f"📚 Retrieved Knowledge Sources ({len(sources)} documents cited)"):
+                    with st.expander(f"📚 Retrieved knowledge sources ({len(sources)} documents cited)"):
                         for s in sources:
                             st.write(f"- **{s.get('document')}** (Page {s.get('page')}) — Similarity: `{s.get('similarity_score', 0):.4f}`")
 
-            st.markdown('</div>', unsafe_allow_html=True)
+    # Primary Input Box & Submit Button
+    st.divider()
+    with st.form("tab1_ai_chatbot_form", clear_on_submit=True):
+        col_in, col_btn = st.columns([0.80, 0.20])
+        with col_in:
+            tab1_input_val = st.text_input(
+                "Ask AI Chatbot",
+                placeholder="Ask anything...",
+                label_visibility="collapsed",
+                key="tab1_main_input_box"
+            )
+        with col_btn:
+            tab1_submitted = st.form_submit_button("Submit", type="primary", use_container_width=True)
 
     # Process incoming or pending prompt
-    chat_input_val = st.chat_input("Ask a question or describe conditions (e.g. Saturday Nov 14 2026, Dallas, high 35C, low 24C, avg 29C, load 52000 MW)...")
-    prompt_to_process = chat_input_val or st.session_state.pending_prompt
+    chat_input_val = st.chat_input("Ask anything...")
+    prompt_to_process = (tab1_input_val if tab1_submitted and tab1_input_val.strip() else None) or chat_input_val or st.session_state.pending_prompt
 
     if prompt_to_process:
         st.session_state.pending_prompt = None
@@ -681,13 +1123,13 @@ with tab_chat:
 
                 # Construct assistant reply text
                 risk_emoji = "⚠️ HIGH USAGE RISK" if "high" in pred_result["risk_status"].lower() else "✅ NORMAL USAGE"
-                reply_text = f"""### ⚡ SmartGrid AI Assessment: **{risk_emoji}**
+                reply_text = f"""### SmartGrid AI Assessment: **{risk_emoji}**
 
-**Forecast Summary:**
-- **Predicted Demand:** **{pred_result['predicted_usage']:,.2f} MW**
-- **Threshold Limit:** **{pred_result['usage_threshold']:,.2f} MW**
-- **Risk Probability:** **{pred_result['risk_probability']:.2f}%**
-- **Classification Status:** `{pred_result['risk_status']}`
+**Forecast summary**
+- **Predicted demand:** **{pred_result['predicted_usage']:,.2f} MW**
+- **Threshold limit:** **{pred_result['usage_threshold']:,.2f} MW**
+- **Risk probability:** **{pred_result['risk_probability']:.2f}%**
+- **Classification status:** `{pred_result['risk_status']}`
 
 ---
 {advisory}
@@ -741,110 +1183,76 @@ with tab_chat:
 
         st.rerun()
 
-    # Chat reset buttons
+    # Chat reset button
+    st.markdown('<div class="clear-row">', unsafe_allow_html=True)
     col_c1, col_c2 = st.columns([0.8, 0.2])
     with col_c2:
-        if st.button("🗑️ Clear Chat", use_container_width=True):
+        if st.button("🗑️ Clear chat", use_container_width=True):
             st.session_state.chat_messages = []
             st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# TAB 2: FORECASTER DASHBOARD (PRESERVED FULL INTERACTIVE VIEW)
+# TAB 2: FORECASTER DASHBOARD
 # -------------------------------------------------------------
 with tab_dashboard:
     result = st.session_state.prediction_result
     input_data = st.session_state.last_input
 
     if result is None:
-        st.markdown('<div class="section-title">📊 Energy Intelligence Dashboard</div>', unsafe_allow_html=True)
-        st.write("Configure location and weather conditions in the sidebar or run an analysis in the Chatbot to view demand forecast analytics.")
+        section("Energy Intelligence Dashboard")
+        st.write("Set the location and weather conditions in the sidebar, or run a scenario in the chatbot, to see forecast analytics here.")
+        st.write("")
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.markdown("""
-            <div class="metric-box">
-                <div class="metric-label">MACHINE LEARNING</div>
-                <div class="metric-value">Demand Forecast</div>
-                <div class="metric-note">XGBoost & Regression modeling</div>
-            </div>
-            """, unsafe_allow_html=True)
-
+            st.markdown(metric_card("Machine learning", "Demand Forecast", "XGBoost &amp; regression modeling"), unsafe_allow_html=True)
         with col2:
-            st.markdown("""
-            <div class="metric-box">
-                <div class="metric-label">RISK ANALYTICS</div>
-                <div class="metric-value">Risk Detection</div>
-                <div class="metric-note">Classification probability & thresholds</div>
-            </div>
-            """, unsafe_allow_html=True)
-
+            st.markdown(metric_card("Risk analytics", "Risk Detection", "Classification probability &amp; thresholds"), unsafe_allow_html=True)
         with col3:
-            st.markdown("""
-            <div class="metric-box">
-                <div class="metric-label">AGENTIC AI + RAG</div>
-                <div class="metric-value">Tool Derivation</div>
-                <div class="metric-note">CDD, weekend flag, grounded advisories</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(metric_card("Agentic AI + RAG", "Tool Derivation", "CDD, weekend flag, grounded advisories"), unsafe_allow_html=True)
 
-        st.info("💡 Tip: You can test the Dallas scenario directly from the **💬 SmartGrid AI Chatbot** tab or click 'Run Manual Forecast' in the sidebar!")
+        st.write("")
+        st.info("Tip: try the Dallas scenario from the **Chatbot & Agent** tab, or press **Run Manual Forecast** in the sidebar.")
 
     else:
-        st.markdown('<div class="section-title">📈 Prediction Overview</div>', unsafe_allow_html=True)
+        section("Prediction Overview")
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div class="metric-label">PREDICTED ELECTRICITY USAGE</div>
-                <div class="metric-value">{result['predicted_usage']:,.2f} MW</div>
-                <div class="metric-note">Model regression forecast</div>
-            </div>
-            """, unsafe_allow_html=True)
-
+            st.markdown(metric_card("Predicted electricity usage", f"{result['predicted_usage']:,.2f} MW", "Model regression forecast"), unsafe_allow_html=True)
         with col2:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div class="metric-label">HIGH-USAGE PROBABILITY</div>
-                <div class="metric-value">{result['risk_probability']:.2f}%</div>
-                <div class="metric-note">Classifier stress probability</div>
-            </div>
-            """, unsafe_allow_html=True)
-
+            st.markdown(metric_card("High-usage probability", f"{result['risk_probability']:.2f}%", "Classifier stress probability"), unsafe_allow_html=True)
         with col3:
-            st.markdown(f"""
-            <div class="metric-box">
-                <div class="metric-label">USAGE THRESHOLD</div>
-                <div class="metric-value">{result['usage_threshold']:,.2f} MW</div>
-                <div class="metric-note">75th percentile stress boundary</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(metric_card("Usage threshold", f"{result['usage_threshold']:,.2f} MW", "75th percentile stress boundary"), unsafe_allow_html=True)
 
         st.write("")
 
         # Risk Assessment Banner
-        st.markdown('<div class="section-title">🚦 Risk Assessment</div>', unsafe_allow_html=True)
+        section("Risk Assessment")
         risk_status = str(result.get("risk_status", "")).strip().lower()
         is_high_risk = risk_status in ["high usage risk", "high usage", "high risk"]
 
         if is_high_risk:
             st.markdown("""
             <div class="status-high">
-                ⚠️ HIGH USAGE RISK DETECTED — Elevated strain anticipated on ERCOT transmission infrastructure.
+                ⚠️ <span>High usage risk detected. Elevated strain anticipated on ERCOT transmission infrastructure.</span>
             </div>
             """, unsafe_allow_html=True)
+            st.write("")
             st.warning("The model has identified extreme thermal or demand conditions exceeding safe threshold limits.")
         else:
             st.markdown("""
             <div class="status-normal">
-                ✅ NORMAL USAGE CLASSIFICATION — Electricity demand is projected within standard operating reserves.
+                ✅ <span>Normal usage classification. Electricity demand is projected within standard operating reserves.</span>
             </div>
             """, unsafe_allow_html=True)
+            st.write("")
             st.success("The model has classified conditions within normal reserve margins.")
 
         # Usage vs Threshold Comparison
         st.divider()
-        st.markdown('<div class="section-title">📊 Usage vs Threshold Comparison</div>', unsafe_allow_html=True)
+        section("Usage vs Threshold")
 
         usage_df = pd.DataFrame({
             "Category": ["Predicted Usage", "High Usage Threshold"],
@@ -861,7 +1269,7 @@ with tab_dashboard:
 
         # Weather & Input Conditions Summary
         st.divider()
-        st.markdown('<div class="section-title">🌦️ Input Conditions Summary</div>', unsafe_allow_html=True)
+        section("Input Conditions")
         w_c1, w_c2, w_c3, w_c4 = st.columns(4)
         with w_c1:
             st.metric("Average Temperature", f"{input_data['temperature_mean']} °C")
@@ -872,18 +1280,18 @@ with tab_dashboard:
         with w_c4:
             st.metric("Precipitation", f"{input_data['precipitation_mm']} mm")
 
-        st.caption(f"**ERCOT Zone:** {input_data.get('ERCOT_zone')} | **Date:** {input_data.get('date')} | **Coordinates:** {input_data.get('latitude')}, {input_data.get('longitude')}")
+        st.caption(f"**ERCOT Zone:** {input_data.get('ERCOT_zone')}  ·  **Date:** {input_data.get('date')}  ·  **Coordinates:** {input_data.get('latitude')}, {input_data.get('longitude')}")
 
         # AI-Powered Grid Advisory
         st.divider()
-        st.markdown('<div class="section-title">🤖 AI-Powered Grid Advisory</div>', unsafe_allow_html=True)
+        section("AI-Powered Grid Advisory")
         st.markdown(result["explanation"])
 
         # Knowledge Retrieval Sources
         if result.get("sources"):
             st.divider()
-            st.markdown('<div class="section-title">📚 Knowledge Retrieval Sources</div>', unsafe_allow_html=True)
-            st.caption("Retrieved ERCOT technical documents supporting the generated AI explanation.")
+            section("Knowledge Retrieval Sources")
+            st.caption("Retrieved ERCOT technical documents supporting the generated explanation.")
 
             for idx, src in enumerate(result["sources"], start=1):
                 with st.expander(f"📄 Source {idx}: {src.get('document')} (Page {src.get('page')})"):
@@ -895,34 +1303,34 @@ with tab_dashboard:
 # TAB 3: AGENTIC AI INSPECTOR (DEVELOPER / FUNCTION CALLING STUDIO)
 # -------------------------------------------------------------
 with tab_inspector:
-    st.markdown("#### 🛠️ Agentic AI Function Calling Studio")
-    st.caption("Inspect the exact tool-calling workflow, function parameter extraction (`derive`), and output JSON matching the project dataset.")
+    section("Agentic AI Function Calling Studio")
+    st.caption("Inspect the tool-calling workflow, the `derive` parameter extraction, and the output JSON matching the project dataset.")
 
     test_prompt = st.text_area(
-        "Condition Description Text:",
+        "Condition description",
         value="Saturday Nov 14 2026, Dallas, high 35C, low 24C, avg 29C, humidity 60%, wind 4 m/s, no rain, load 52000 MW",
         height=90
     )
 
     if st.button("🚀 Execute Agentic Tool Calling", type="primary"):
-        with st.spinner("Invoking Agentic AI & Tool Pipeline..."):
+        with st.spinner("Invoking Agentic AI & tool pipeline..."):
             extracted_output = run_agentic_ai(test_prompt)
 
-            st.success("Agentic Tool Execution Completed!")
+            st.success("Agentic tool execution completed.")
 
             col_t1, col_t2 = st.columns(2)
 
             with col_t1:
-                st.markdown("**📤 Extracted Features JSON (User Required Keys):**")
+                st.markdown("**Extracted features (JSON)**")
                 st.json(extracted_output)
 
             with col_t2:
-                st.markdown("**⚙️ Tool Call Diagnostics (`derive`):**")
+                st.markdown("**Tool call diagnostics (`derive`)**")
                 st.markdown(f"""
-                - **Cooling Degree Days (CDD):** `{extracted_output.get('CDD')}` (Derived as max(0, Mean Temp - 18.3°C))
-                - **Temperature Range:** `{extracted_output.get('temp_range')}` °C (High - Low)
+                - **Cooling Degree Days (CDD):** `{extracted_output.get('CDD')}` (max(0, Mean Temp − 18.3°C))
+                - **Temperature Range:** `{extracted_output.get('temp_range')}` °C (High − Low)
                 - **Weekend Flag:** `{extracted_output.get('weekend')}` (1 = Weekend, 0 = Weekday)
-                - **ERCOT Zone Encoded:** `{extracted_output.get('ERCOT_zone_encoded')}` (Zone index in `{ZONES}`)
+                - **ERCOT Zone Encoded:** `{extracted_output.get('ERCOT_zone_encoded')}` (index in `{ZONES}`)
                 - **Reported Load:** `{extracted_output.get('zone_usage')}` MW
                 - **Precipitation:** `{extracted_output.get('precipitation_mm')}` mm
                 - **Wind Speed:** `{extracted_output.get('wind_speed_mps')}` m/s
@@ -930,7 +1338,7 @@ with tab_inspector:
 
                 # Show pipeline mapping
                 pip_in = to_pipeline_input(extracted_output, test_prompt)
-                st.markdown("**🗺️ Dataset Feature Alignment:**")
+                st.markdown("**Dataset feature alignment**")
                 st.code(json.dumps(pip_in, indent=2), language="json")
 
 # ==========================================
@@ -938,5 +1346,108 @@ with tab_inspector:
 # ==========================================
 
 st.divider()
-st.caption("⚡ SmartGrid AI | Autonomous Energy Demand Forecasting, Agentic AI & Consumer Advisory Platform")
-st.caption("© 2026 SmartGrid AI. All rights reserved.")
+st.markdown("""
+<div class="app-footer">
+    SmartGrid AI &middot; Autonomous energy demand forecasting, agentic AI &amp; consumer advisory<br>
+    © 2026 SmartGrid AI. All rights reserved.
+</div>
+""", unsafe_allow_html=True)
+
+# ==========================================
+# 8. FLOATING AI CHATBOT DOCKED AT BOTTOM-RIGHT
+# ==========================================
+
+if not st.session_state.copilot_open:
+    # Closed state: sleek floating action button (FAB) anchored to bottom-right
+    with st.container(key="floating_copilot_fab_container"):
+        if st.button("💬 AI Chatbot", key="floating_fab_trigger_btn", help="Click to open AI Chatbot"):
+            st.session_state.copilot_open = True
+            st.rerun()
+else:
+    # Open state: floating chat panel docked directly to the bottom-right on the SAME page
+    with st.container(key="floating_copilot_window"):
+        # Top Header Bar - Named ONLY "AI Chatbot"
+        col_h_left, col_h_right = st.columns([0.76, 0.24])
+        with col_h_left:
+            st.markdown("""
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                <span style="font-size: 20px;">🤖</span>
+                <div>
+                    <div style="font-weight: 750; font-size: 15px; color: #f5b83d; line-height: 1.2;">AI Chatbot</div>
+                    <div style="font-size: 11px; color: #8b97ad;"><span style="color: #4ade80;">● Online</span> &middot; Ask anything</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_h_right:
+            c_btn1, c_btn2 = st.columns(2)
+            with c_btn1:
+                if st.button("🗑️", key="copilot_clear_top", help="Clear chat"):
+                    st.session_state.floating_chat_history = []
+                    st.session_state.dock_pending = False
+                    st.rerun()
+            with c_btn2:
+                if st.button("✕", key="copilot_close_top", help="Close AI Chatbot"):
+                    st.session_state.copilot_open = False
+                    st.rerun()
+
+        # Scrollable Chat Container (compact height so input box is always visible)
+        with st.container(height=290):
+            if not st.session_state.floating_chat_history:
+                st.markdown("""
+                <div style="text-align: center; padding: 24px 10px; color: #8b97ad;">
+                    <div style="font-size: 34px; margin-bottom: 6px;">🤖</div>
+                    <div style="font-weight: 700; color: #e6e9f0; font-size: 15px;">AI Chatbot</div>
+                    <div style="font-size: 12.5px; margin-top: 4px; line-height: 1.4;">
+                        Ask me anything! Type your question below and click <b>Submit</b>.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                for msg in st.session_state.floating_chat_history:
+                    avatar = "🧑" if msg["role"] == "user" else "🤖"
+                    with st.chat_message(msg["role"], avatar=avatar):
+                        st.markdown(msg["content"])
+                        if msg.get("sources"):
+                            with st.expander(f"📚 Cited Sources ({len(msg['sources'])} docs)"):
+                                for s in msg["sources"]:
+                                    st.write(f"- **{s['document']}** (Page {s['page']})")
+
+                # "Typing..." bubble: shown while the API request is in flight.
+                # The user's message is already on screen (added before the rerun).
+                if st.session_state.dock_pending:
+                    with st.chat_message("assistant", avatar="🤖"):
+                        with st.spinner("Typing..."):
+                            try:
+                                ans = ask_copilot(
+                                    st.session_state.floating_chat_history[-1]["content"],
+                                    st.session_state.floating_chat_history,
+                                )
+                            except Exception as ex:  # ask_copilot shouldn't raise, but never crash the UI
+                                ans = {"text": f"⚠️ Something went wrong: {ex}", "sources": []}
+                    st.session_state.floating_chat_history.append({
+                        "role": "assistant",
+                        "content": ans["text"],
+                        "sources": ans.get("sources", [])
+                    })
+                    st.session_state.dock_pending = False
+                    st.rerun()
+
+        # Input box where user can ask anything and submit
+        with st.form("ai_chatbot_dock_form", clear_on_submit=True):
+            col_inp, col_snd = st.columns([0.76, 0.24])
+            with col_inp:
+                user_dock_msg = st.text_input(
+                    "Ask anything",
+                    placeholder="Ask anything...",
+                    label_visibility="collapsed",
+                    key="ai_chatbot_dock_text_input"
+                )
+            with col_snd:
+                dock_submitted = st.form_submit_button("Submit", type="primary", use_container_width=True)
+
+        # Step 1 of 2: store the user's message and rerun so it shows immediately.
+        # Step 2 (above, inside the chat window) calls the API and shows "Typing...".
+        if dock_submitted and user_dock_msg and user_dock_msg.strip() and not st.session_state.dock_pending:
+            st.session_state.floating_chat_history.append({"role": "user", "content": user_dock_msg.strip()})
+            st.session_state.dock_pending = True
+            st.rerun()

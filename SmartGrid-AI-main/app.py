@@ -17,6 +17,7 @@ from ml.prediction import predict_grid_status
 from rag.smartgrid_pipeline import run_smartgrid, load_knowledge_base
 from rag.retrieval import retrieve_documents
 from rag.llm import generate_answer
+from copilot_engine import ask_copilot
 
 # ==========================================
 # 1. PAGE CONFIGURATION
@@ -591,6 +592,150 @@ pre, code { font-family: 'JetBrains Mono', monospace !important; }
     .brand-title { font-size: 21px; }
     .metric-value { font-size: 22px; }
 }
+
+/* ---------- FLOATING COPILOT ACTION BUTTON (FAB - WHEN COLLAPSED) ---------- */
+div[class*="st-key-floating_copilot_fab_container"] {
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    z-index: 999999 !important;
+    width: auto !important;
+    display: block !important;
+}
+
+div[class*="st-key-floating_copilot_fab_container"] button {
+    background: linear-gradient(135deg, #f5b83d 0%, #e08b1b 100%) !important;
+    color: #080d19 !important;
+    font-weight: 750 !important;
+    font-size: 14.5px !important;
+    border-radius: 999px !important;
+    padding: 12px 22px !important;
+    border: 2px solid #fde68a !important;
+    box-shadow: 0 10px 32px rgba(245, 184, 61, 0.45), 0 0 18px rgba(245, 184, 61, 0.3) !important;
+    cursor: pointer !important;
+    letter-spacing: -0.01em !important;
+    animation: fab-pulse 2.6s infinite !important;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+div[class*="st-key-floating_copilot_fab_container"] button:hover {
+    transform: translateY(-3px) scale(1.05) !important;
+    box-shadow: 0 14px 40px rgba(245, 184, 61, 0.7), 0 0 26px rgba(245, 184, 61, 0.5) !important;
+    background: linear-gradient(135deg, #ffd066 0%, #f5b83d 100%) !important;
+}
+
+@keyframes fab-pulse {
+    0% { box-shadow: 0 8px 24px rgba(245, 184, 61, 0.45), 0 0 0 0 rgba(245, 184, 61, 0.7); }
+    70% { box-shadow: 0 10px 30px rgba(245, 184, 61, 0.55), 0 0 0 12px rgba(245, 184, 61, 0); }
+    100% { box-shadow: 0 8px 24px rgba(245, 184, 61, 0.45), 0 0 0 0 rgba(245, 184, 61, 0); }
+}
+
+/* ---------- FLOATING AI CHATBOT WINDOW (SAME PAGE DOCK) ---------- */
+div[class*="st-key-floating_copilot_window"] {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    width: 420px !important;
+    max-width: calc(100vw - 28px) !important;
+    height: 520px !important;
+    max-height: calc(100vh - 36px) !important;
+    background-color: #0d1527 !important;
+    border: 2px solid #2d3b57 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.92), 0 0 30px rgba(245, 184, 61, 0.25) !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 14px 16px 12px 16px !important;
+    backdrop-filter: blur(16px) !important;
+    animation: copilot-pop-in 0.22s ease-out !important;
+}
+
+/* Explicit high-visibility input styling */
+div[data-testid="stTextInput"] div[data-baseweb="input"],
+div[data-testid="stTextInput"] div[data-baseweb="base-input"] {
+    background-color: #111826 !important;
+    border: 1.5px solid #38bdf8 !important;
+    border-radius: 9px !important;
+}
+
+div[data-testid="stTextInput"] input {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-size: 14.5px !important;
+    padding: 8px 12px !important;
+}
+
+div[data-testid="stTextInput"] input::placeholder {
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
+}
+
+@keyframes copilot-pop-in {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Top bar buttons (clear & close) inside the floating window */
+div[class*="st-key-copilot_close_top"] button,
+div[class*="st-key-copilot_clear_top"] button {
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-muted) !important;
+    border-radius: 8px !important;
+    height: 32px !important;
+    padding: 2px 8px !important;
+    font-size: 13px !important;
+    box-shadow: none !important;
+    min-height: 32px !important;
+}
+
+div[class*="st-key-copilot_close_top"] button:hover {
+    color: #f87171 !important;
+    border-color: #f87171 !important;
+    background: rgba(248, 113, 113, 0.12) !important;
+}
+
+div[class*="st-key-copilot_clear_top"] button:hover {
+    color: var(--accent) !important;
+    border-color: var(--accent) !important;
+    background: var(--accent-soft) !important;
+}
+
+/* Quick prompt chips inside floating copilot */
+div[class*="st-key-copilot_chip"] button {
+    background: #151d2e !important;
+    border: 1px solid #212c42 !important;
+    color: #8b97ad !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    box-shadow: none !important;
+    font-weight: 550 !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+}
+
+div[class*="st-key-copilot_chip"] button:hover {
+    background: #1b2539 !important;
+    border-color: #f5b83d !important;
+    color: #f5b83d !important;
+}
+
+/* Scroll area inside floating copilot */
+div[class*="st-key-floating_copilot_window"] [data-testid="stVerticalBlockBorderWrapper"] {
+    background: #090e1c !important;
+    border: 1px solid #1c273e !important;
+    border-radius: 12px !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -657,6 +802,21 @@ if "chat_messages" not in st.session_state:
 if "pending_prompt" not in st.session_state:
     st.session_state.pending_prompt = None
 
+if "floating_chat_history" not in st.session_state:
+    st.session_state.floating_chat_history = [
+        {
+            "role": "assistant",
+            "content": (
+                "Hello! I am your **AI Chatbot**.\n\n"
+                "Ask me anything in the input box below and click **Submit**, and I will provide the best answer!"
+            ),
+            "sources": []
+        }
+    ]
+
+if "copilot_open" not in st.session_state:
+    st.session_state.copilot_open = False
+
 # ==========================================
 # 4. HEADER
 # ==========================================
@@ -673,6 +833,7 @@ st.markdown("""
     <div class="status-row">
         <span class="status-pill">ML models active</span>
         <span class="status-pill">Agentic tools ready</span>
+        <span class="status-pill">Floating AI Copilot active</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -696,15 +857,27 @@ with st.sidebar.expander("🔑 Agent & API Configuration", expanded=False):
     )
     if groq_key_input:
         os.environ["GROQ_API_KEY"] = groq_key_input
+        st.session_state["groq_api_key"] = groq_key_input
 
     gemini_key_input = st.text_input(
         "Gemini API Key",
         value=os.getenv("GEMINI_API_KEY", ""),
         type="password",
-        help="Used for RAG grid advisory generation."
+        help="Used for RAG grid advisory generation and Copilot answers."
     )
     if gemini_key_input:
         os.environ["GEMINI_API_KEY"] = gemini_key_input
+        st.session_state["gemini_api_key"] = gemini_key_input
+
+    openai_key_input = st.text_input(
+        "OpenAI API Key (Optional)",
+        value=os.getenv("OPENAI_API_KEY", ""),
+        type="password",
+        help="Used for OpenAI GPT-4o-mini Copilot queries."
+    )
+    if openai_key_input:
+        os.environ["OPENAI_API_KEY"] = openai_key_input
+        st.session_state["openai_api_key"] = openai_key_input
 
     agent_model = st.selectbox(
         "Agentic LLM Model",
@@ -790,17 +963,17 @@ if predict_button:
 # ==========================================
 
 tab_chat, tab_dashboard, tab_inspector = st.tabs([
-    "Chatbot & Agent",
+    "AI Chatbot",
     "Forecaster Dashboard",
     "Agentic AI Inspector"
 ])
 
 # -------------------------------------------------------------
-# TAB 1: SMARTGRID AI CHATBOT
+# TAB 1: AI CHATBOT
 # -------------------------------------------------------------
 with tab_chat:
-    section("Conversational Energy Intelligence")
-    st.caption("Ask questions or describe weather and grid scenarios in plain language. The agent calls tools to extract features and forecast demand.")
+    section("AI Chatbot")
+    st.caption("Ask anything: describe conditions, ask general questions, or inquire about energy and grid intelligence.")
 
     # Quick prompt chips
     st.markdown('<div class="chip-row">', unsafe_allow_html=True)
@@ -873,9 +1046,23 @@ with tab_chat:
                         for s in sources:
                             st.write(f"- **{s.get('document')}** (Page {s.get('page')}) — Similarity: `{s.get('similarity_score', 0):.4f}`")
 
+    # Primary Input Box & Submit Button
+    st.divider()
+    with st.form("tab1_ai_chatbot_form", clear_on_submit=True):
+        col_in, col_btn = st.columns([0.80, 0.20])
+        with col_in:
+            tab1_input_val = st.text_input(
+                "Ask AI Chatbot",
+                placeholder="Ask anything...",
+                label_visibility="collapsed",
+                key="tab1_main_input_box"
+            )
+        with col_btn:
+            tab1_submitted = st.form_submit_button("Submit", type="primary", use_container_width=True)
+
     # Process incoming or pending prompt
-    chat_input_val = st.chat_input("Ask a question or describe conditions, e.g. Saturday Nov 14 2026, Dallas, high 35C, low 24C, avg 29C, load 52000 MW")
-    prompt_to_process = chat_input_val or st.session_state.pending_prompt
+    chat_input_val = st.chat_input("Ask anything...")
+    prompt_to_process = (tab1_input_val if tab1_submitted and tab1_input_val.strip() else None) or chat_input_val or st.session_state.pending_prompt
 
     if prompt_to_process:
         st.session_state.pending_prompt = None
@@ -1162,3 +1349,87 @@ st.markdown("""
     © 2026 SmartGrid AI. All rights reserved.
 </div>
 """, unsafe_allow_html=True)
+
+# ==========================================
+# 8. FLOATING AI CHATBOT DOCKED AT BOTTOM-RIGHT
+# ==========================================
+
+if not st.session_state.copilot_open:
+    # Closed state: sleek floating action button (FAB) anchored to bottom-right
+    with st.container(key="floating_copilot_fab_container"):
+        if st.button("💬 AI Chatbot", key="floating_fab_trigger_btn", help="Click to open AI Chatbot"):
+            st.session_state.copilot_open = True
+            st.rerun()
+else:
+    # Open state: floating chat panel docked directly to the bottom-right on the SAME page
+    with st.container(key="floating_copilot_window"):
+        # Top Header Bar - Named ONLY "AI Chatbot"
+        col_h_left, col_h_right = st.columns([0.76, 0.24])
+        with col_h_left:
+            st.markdown("""
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                <span style="font-size: 20px;">🤖</span>
+                <div>
+                    <div style="font-weight: 750; font-size: 15px; color: #f5b83d; line-height: 1.2;">AI Chatbot</div>
+                    <div style="font-size: 11px; color: #8b97ad;"><span style="color: #4ade80;">● Online</span> &middot; Ask anything</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_h_right:
+            c_btn1, c_btn2 = st.columns(2)
+            with c_btn1:
+                if st.button("🗑️", key="copilot_clear_top", help="Clear chat"):
+                    st.session_state.floating_chat_history = []
+                    st.rerun()
+            with c_btn2:
+                if st.button("✕", key="copilot_close_top", help="Close AI Chatbot"):
+                    st.session_state.copilot_open = False
+                    st.rerun()
+
+        # Scrollable Chat Container (compact height so input box is always visible)
+        with st.container(height=290):
+            if not st.session_state.floating_chat_history:
+                st.markdown("""
+                <div style="text-align: center; padding: 24px 10px; color: #8b97ad;">
+                    <div style="font-size: 34px; margin-bottom: 6px;">🤖</div>
+                    <div style="font-weight: 700; color: #e6e9f0; font-size: 15px;">AI Chatbot</div>
+                    <div style="font-size: 12.5px; margin-top: 4px; line-height: 1.4;">
+                        Ask me anything! Type your question below and click <b>Submit</b>.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                for msg in st.session_state.floating_chat_history:
+                    avatar = "🧑" if msg["role"] == "user" else "🤖"
+                    with st.chat_message(msg["role"], avatar=avatar):
+                        st.markdown(msg["content"])
+                        if msg.get("sources"):
+                            with st.expander(f"📚 Cited Sources ({len(msg['sources'])} docs)"):
+                                for s in msg["sources"]:
+                                    st.write(f"- **{s['document']}** (Page {s['page']})")
+
+        # Input box where user can ask anything and submit
+        with st.form("ai_chatbot_dock_form", clear_on_submit=True):
+            col_inp, col_snd = st.columns([0.76, 0.24])
+            with col_inp:
+                user_dock_msg = st.text_input(
+                    "Ask anything",
+                    placeholder="Ask anything...",
+                    label_visibility="collapsed",
+                    key="ai_chatbot_dock_text_input"
+                )
+            with col_snd:
+                dock_submitted = st.form_submit_button("Submit", type="primary", use_container_width=True)
+
+        if dock_submitted and user_dock_msg and user_dock_msg.strip():
+            query_to_run = user_dock_msg.strip()
+            st.session_state.floating_chat_history.append({"role": "user", "content": query_to_run})
+
+            with st.spinner("AI Chatbot is answering..."):
+                ans = ask_copilot(query_to_run, st.session_state.floating_chat_history)
+                st.session_state.floating_chat_history.append({
+                    "role": "assistant",
+                    "content": ans["text"],
+                    "sources": ans.get("sources", [])
+                })
+            st.rerun()
