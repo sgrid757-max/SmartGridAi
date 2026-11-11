@@ -33,10 +33,10 @@ GEMINI_CANDIDATE_MODELS = [
 ]
 
 def query_gemini(prompt: str, api_key: str, model: str = None, chat_history: list = None) -> tuple[str, str]:
-    """Sends prompt securely to Google Gemini API using google.genai client with automatic model fallback."""
-    from google import genai
+    """Sends prompt securely to Google Gemini API using google.generativeai client with automatic model fallback."""
+    import google.generativeai as genai
 
-    client = genai.Client(api_key=api_key.strip())
+    genai.configure(api_key=api_key.strip())
 
     # Build model list to try: prefer specified model, followed by candidates
     models_to_try = []
@@ -59,10 +59,9 @@ def query_gemini(prompt: str, api_key: str, model: str = None, chat_history: lis
     last_error = None
     for m in models_to_try:
         try:
-            res = client.models.generate_content(
-                model=m,
-                contents=formatted_context
-            )
+            # Using standard generativeai model call format
+            gemini_model = genai.GenerativeModel(m)
+            res = gemini_model.generate_content(formatted_context)
             if res and res.text:
                 return res.text.strip(), f"Google Gemini ({m})"
         except Exception as err:
