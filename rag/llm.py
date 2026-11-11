@@ -106,18 +106,26 @@ USER QUESTION:
 ANSWER:
 """
 
-    # 1. Try Gemini first
+    # 1. Try Gemini first (with model fallback: gemini-3.8-flash -> gemini-3.5-flash-lite)
     gemini_client = get_gemini_client()
     if gemini_client is not None:
-        try:
-            response = gemini_client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
-            )
-            if response and response.text:
-                return response.text
-        except Exception as e:
-            print("Gemini API Error:", str(e))
+        candidate_models = [
+            os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
+            "gemini-3.8-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-2.5-flash"
+        ]
+        for m in candidate_models:
+            try:
+                response = gemini_client.models.generate_content(
+                    model=m,
+                    contents=prompt
+                )
+                if response and response.text:
+                    return response.text
+            except Exception as e:
+                print(f"Gemini API model {m} notice: {e}")
+                continue
 
     # 2. Try Groq or OpenAI
     alt_answer = generate_with_groq_or_openai(prompt)
