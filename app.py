@@ -36,26 +36,26 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-    --bg:            #0a0f1a;
-    --surface:       #111826;
-    --surface-2:     #151d2e;
-    --surface-3:     #1b2539;
-    --border:        #212c42;
-    --border-strong: #2d3b57;
-    --text:          #e6e9f0;
-    --text-muted:    #8b97ad;
-    --text-faint:    #62708a;
-    --accent:        #f5b83d;
-    --accent-soft:   rgba(245, 184, 61, 0.12);
-    --accent-hover:  #ffc94f;
-    --good:          #4ade80;
-    --good-soft:     rgba(74, 222, 128, 0.10);
-    --bad:           #f87171;
-    --bad-soft:      rgba(248, 113, 113, 0.10);
-    --radius:        12px;
+    --bg:            #121212;
+    --surface:       #1a1a1a;
+    --surface-2:     #242424;
+    --surface-3:     #2e2e2e;
+    --border:        #383838;
+    --border-strong: #4d4d4d;
+    --text:          #e0e0e0;
+    --text-muted:    #a0a0a0;
+    --text-faint:    #707070;
+    --accent:        #d4a373;
+    --accent-soft:   rgba(212, 163, 115, 0.1);
+    --accent-hover:  #e5b383;
+    --good:          #81b29a;
+    --good-soft:     rgba(129, 178, 154, 0.1);
+    --bad:           #e07a5f;
+    --bad-soft:      rgba(224, 122, 95, 0.1);
+    --radius:        8px;
 }
 
 /* ---------- Base ---------- */
@@ -66,7 +66,7 @@ html, body, .stApp, [data-testid="stAppViewContainer"] {
 }
 
 .block-container {
-    padding-top: 2.2rem;
+    padding-top: 2rem;
     padding-bottom: 3rem;
     max-width: 1240px;
 }
@@ -76,47 +76,47 @@ header[data-testid="stHeader"] { background: transparent; }
 
 h1, h2, h3, h4, h5 {
     color: var(--text) !important;
-    letter-spacing: -0.015em;
-    font-weight: 650 !important;
+    letter-spacing: -0.01em;
+    font-weight: 600 !important;
 }
 
-p, li, span, label { color: inherit; }
+p, li, span, label { color: var(--text); }
 
-hr { border-color: var(--border) !important; margin: 1.4rem 0 !important; }
+hr { border-color: var(--border) !important; margin: 1.2rem 0 !important; }
 
 /* ---------- Header ---------- */
 .app-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
+    gap: 20px;
     flex-wrap: wrap;
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }
 
 .brand-mark {
-    width: 44px;
-    height: 44px;
-    border-radius: 11px;
-    background: var(--accent);
-    color: #1a1305;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    box-shadow: 0 6px 20px rgba(245, 184, 61, 0.22);
+    font-size: 20px;
+    border: 1px solid var(--border);
 }
 
 .brand-title {
-    font-size: 26px;
-    font-weight: 750;
+    font-size: 24px;
+    font-weight: 700;
     color: var(--text);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     line-height: 1.1;
 }
 
@@ -127,8 +127,8 @@ hr { border-color: var(--border) !important; margin: 1.4rem 0 !important; }
 
 .brand-sub {
     color: var(--text-muted);
-    font-size: 13.5px;
-    margin-top: 3px;
+    font-size: 13px;
+    margin-top: 2px;
 }
 
 .status-row { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -136,11 +136,11 @@ hr { border-color: var(--border) !important; margin: 1.4rem 0 !important; }
 .status-pill {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 5px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 550;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
     background: var(--surface);
     border: 1px solid var(--border);
     color: var(--text-muted);
@@ -148,30 +148,29 @@ hr { border-color: var(--border) !important; margin: 1.4rem 0 !important; }
 
 .status-pill::before {
     content: "";
-    width: 7px; height: 7px;
+    width: 6px; height: 6px;
     border-radius: 50%;
     background: var(--good);
-    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
 }
 
 /* ---------- Tabs ---------- */
 div[data-baseweb="tab-list"] {
-    gap: 4px;
+    gap: 2px;
     border-bottom: 1px solid var(--border);
 }
 
 button[data-baseweb="tab"] {
     background: transparent !important;
     color: var(--text-muted) !important;
-    font-weight: 550 !important;
-    font-size: 14px !important;
-    padding: 10px 16px !important;
-    border-radius: 8px 8px 0 0 !important;
+    font-weight: 500 !important;
+    font-size: 13.5px !important;
+    padding: 8px 14px !important;
+    border-radius: 6px 6px 0 0 !important;
 }
 
 button[data-baseweb="tab"]:hover { color: var(--text) !important; }
 
-button[data-baseweb="tab"][aria-selected="true"] { color: var(--accent) !important; }
+button[data-baseweb="tab"][aria-selected="true"] { color: var(--accent) !important; background: var(--surface) !important; }
 
 div[data-baseweb="tab-highlight"] { background-color: var(--accent) !important; height: 2px !important; }
 div[data-baseweb="tab-border"] { display: none; }
@@ -184,32 +183,29 @@ div[data-baseweb="tab-border"] { display: none; }
 
 [data-testid="stSidebar"] h3,
 [data-testid="stSidebar"] h2 {
-    font-size: 15px !important;
+    font-size: 13px !important;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     color: var(--text-muted) !important;
-    font-weight: 650 !important;
+    font-weight: 600 !important;
 }
-
-[data-testid="stSidebar"] [data-testid="stCaptionContainer"] { color: var(--text-faint); }
 
 /* ---------- Section headings ---------- */
 .section-title {
     color: var(--text);
-    font-size: 17px;
-    font-weight: 650;
-    letter-spacing: -0.01em;
-    margin: 6px 0 14px 0;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 4px 0 12px 0;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .section-title::before {
     content: "";
-    width: 3px;
-    height: 16px;
-    border-radius: 2px;
+    width: 2px;
+    height: 14px;
+    border-radius: 1px;
     background: var(--accent);
 }
 
@@ -218,63 +214,54 @@ div[data-baseweb="tab-border"] { display: none; }
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 18px 20px;
-    min-height: 118px;
-    transition: border-color 0.2s ease, transform 0.2s ease;
-}
-
-.metric-box:hover {
-    border-color: var(--border-strong);
-    transform: translateY(-1px);
+    padding: 16px 18px;
+    min-height: 110px;
 }
 
 .metric-label {
     color: var(--text-muted);
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.09em;
+    letter-spacing: 0.05em;
 }
 
 .metric-value {
     color: var(--text);
-    font-size: 27px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-top: 8px;
-    font-variant-numeric: tabular-nums;
+    font-size: 24px;
+    font-weight: 600;
+    margin-top: 6px;
 }
 
 .metric-note {
     color: var(--text-faint);
-    font-size: 12.5px;
-    margin-top: 6px;
+    font-size: 12px;
+    margin-top: 4px;
 }
 
 /* ---------- Risk banners ---------- */
 .status-high, .status-normal {
-    padding: 14px 18px;
+    padding: 12px 16px;
     border-radius: var(--radius);
-    font-weight: 600;
-    font-size: 14.5px;
-    line-height: 1.5;
+    font-weight: 500;
+    font-size: 14px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .status-high {
     background: var(--bad-soft);
-    color: #fecaca;
-    border: 1px solid rgba(248, 113, 113, 0.35);
-    border-left: 4px solid var(--bad);
+    color: #e6917c;
+    border: 1px solid rgba(224, 122, 95, 0.3);
+    border-left: 3px solid var(--bad);
 }
 
 .status-normal {
     background: var(--good-soft);
-    color: #bbf7d0;
-    border: 1px solid rgba(74, 222, 128, 0.30);
-    border-left: 4px solid var(--good);
+    color: #9ac2b0;
+    border: 1px solid rgba(129, 178, 154, 0.3);
+    border-left: 3px solid var(--good);
 }
 
 /* ---------- Agent derivation card ---------- */
@@ -282,459 +269,149 @@ div[data-baseweb="tab-border"] { display: none; }
     background: var(--surface-2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 14px 16px;
-    margin: 12px 0 14px 0;
+    padding: 12px 14px;
+    margin: 10px 0 12px 0;
 }
 
 .agent-card-title {
     font-size: 11px;
-    font-weight: 650;
-    letter-spacing: 0.09em;
+    font-weight: 600;
     text-transform: uppercase;
     color: var(--accent);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .agent-card-title code {
-    background: var(--accent-soft);
+    background: var(--surface);
     color: var(--accent);
-    padding: 1px 6px;
+    padding: 1px 4px;
     border-radius: 4px;
-    font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
-    text-transform: none;
-    letter-spacing: 0;
 }
 
 .agent-pill {
     display: inline-flex;
     align-items: baseline;
-    gap: 6px;
-    background: var(--surface-3);
+    gap: 5px;
+    background: var(--surface);
     border: 1px solid var(--border);
-    padding: 4px 10px;
-    border-radius: 7px;
-    font-size: 12px;
-    margin: 3px 5px 3px 0;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 11.5px;
+    margin: 2px 4px 2px 0;
     color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
 }
 
 .agent-pill b {
-    color: var(--text-faint);
-    font-family: 'Inter', sans-serif;
+    color: var(--text-muted);
     font-weight: 500;
     font-size: 11px;
 }
 
 /* ---------- Buttons ---------- */
 .stButton > button {
-    background-color: var(--accent);
-    color: #1a1305;
-    border-radius: 9px;
-    border: 1px solid transparent;
-    height: 42px;
-    font-weight: 650;
-    font-size: 14px;
-    transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+    background-color: var(--surface-2);
+    color: var(--text);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    height: 38px;
+    font-weight: 500;
+    font-size: 13.5px;
 }
 
 .stButton > button:hover {
-    background-color: var(--accent-hover);
-    color: #1a1305;
-    border-color: transparent;
-    box-shadow: 0 4px 16px rgba(245, 184, 61, 0.25);
+    background-color: var(--surface-3);
+    border-color: var(--border-strong);
+    color: var(--accent);
 }
 
-.stButton > button:active { transform: scale(0.985); }
-
-.stButton > button p { color: inherit !important; }
-
-/* Quick-scenario chips (secondary buttons inside the chat tab) */
+/* Quick chips */
 .chip-row .stButton > button {
     background-color: var(--surface) !important;
     color: var(--text-muted) !important;
     border: 1px solid var(--border) !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
+    font-size: 12.5px !important;
     height: auto !important;
-    min-height: 44px;
-    padding: 8px 12px !important;
-    border-radius: 10px !important;
-    box-shadow: none !important;
-    white-space: normal;
-    line-height: 1.3;
+    min-height: 38px;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
 }
 
 .chip-row .stButton > button:hover {
-    background-color: var(--surface-3) !important;
-    color: var(--accent) !important;
-    border-color: var(--accent) !important;
-}
-
-.chip-row .stButton > button p { color: inherit !important; }
-
-.clear-row .stButton > button {
-    background: transparent !important;
-    color: var(--text-muted) !important;
-    border: 1px solid var(--border) !important;
-    box-shadow: none !important;
-    font-weight: 500 !important;
-}
-
-.clear-row .stButton > button:hover {
-    color: var(--bad) !important;
-    border-color: rgba(248, 113, 113, 0.5) !important;
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+    border-color: var(--border-strong) !important;
 }
 
 /* ---------- Chat messages ---------- */
 [data-testid="stChatMessage"] {
     background-color: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px 18px;
-    margin-bottom: 12px;
-    gap: 14px;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
 }
 
 [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
-    background-color: var(--surface-3);
-    border-color: var(--border-strong);
+    background-color: var(--surface-2);
 }
 
 [data-testid="stChatMessage"] p,
 [data-testid="stChatMessage"] li {
     color: var(--text);
-    line-height: 1.65;
-    font-size: 14.5px;
+    line-height: 1.5;
+    font-size: 14px;
 }
-
-[data-testid="stChatMessage"] h3 {
-    font-size: 18px !important;
-    margin-top: 0 !important;
-}
-
-[data-testid="stChatMessage"] code {
-    background: var(--surface-3);
-    color: var(--accent);
-    padding: 1px 6px;
-    border-radius: 5px;
-    font-size: 12.5px;
-}
-
-/* ---------- Native metrics ---------- */
-[data-testid="stMetric"] {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-}
-
-[data-testid="stMetricLabel"] p {
-    color: var(--text-muted) !important;
-    font-size: 11.5px !important;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 600 !important;
-}
-
-[data-testid="stMetricValue"] {
-    color: var(--text) !important;
-    font-size: 22px !important;
-    font-weight: 700 !important;
-    font-variant-numeric: tabular-nums;
-}
-
-/* ---------- Alerts ---------- */
-div[data-testid="stAlert"] {
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background-color: var(--surface-2);
-}
-
-/* ---------- Expanders ---------- */
-div[data-testid="stExpander"] {
-    background-color: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-}
-
-div[data-testid="stExpander"] summary { font-weight: 550; font-size: 13.5px; }
 
 /* ---------- Inputs ---------- */
 div[data-baseweb="input"],
 div[data-baseweb="base-input"],
 div[data-baseweb="textarea"],
 div[data-baseweb="select"] > div {
-    background-color: var(--surface-2) !important;
-    border: 1px solid var(--border-strong) !important;
-    border-radius: 9px !important;
+    background-color: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 6px !important;
     color: var(--text) !important;
-}
-
-div[data-baseweb="input"]:focus-within,
-div[data-baseweb="base-input"]:focus-within,
-div[data-baseweb="textarea"]:focus-within,
-div[data-baseweb="select"] > div:focus-within {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 0 3px var(--accent-soft) !important;
 }
 
 input, textarea {
-    background-color: transparent !important;
     color: var(--text) !important;
     -webkit-text-fill-color: var(--text) !important;
-    font-size: 14px !important;
-    caret-color: var(--accent) !important;
+    font-size: 13.5px !important;
 }
 
 input::placeholder, textarea::placeholder {
     color: var(--text-faint) !important;
     -webkit-text-fill-color: var(--text-faint) !important;
-    opacity: 1 !important;
 }
 
-div[data-testid="stNumberInput"] button {
-    background-color: var(--surface-3) !important;
-    color: var(--text) !important;
-    border: 1px solid var(--border-strong) !important;
-}
-
-div[data-testid="stNumberInput"] button:hover {
-    color: var(--accent) !important;
-    background-color: var(--surface-3) !important;
-}
-
-div[data-testid="stWidgetLabel"] label,
-div[data-testid="stWidgetLabel"] p {
-    color: var(--text-muted) !important;
-    font-size: 12.5px !important;
-    font-weight: 550 !important;
-}
-
-/* Slider */
-div[data-testid="stSlider"] [role="slider"] { background-color: var(--accent) !important; }
-div[data-testid="stSlider"] div[data-testid="stThumbValue"] { color: var(--accent) !important; }
-
-/* Select dropdown */
-div[data-baseweb="select"] * { color: var(--text) !important; }
-
-div[data-baseweb="popover"],
-div[data-baseweb="menu"],
-ul[role="listbox"] {
-    background-color: var(--surface-2) !important;
-    border: 1px solid var(--border-strong) !important;
-    border-radius: 9px !important;
-}
-
-li[role="option"] {
-    color: var(--text) !important;
-    background-color: transparent !important;
-}
-
-li[role="option"]:hover,
-li[role="option"][aria-selected="true"] {
-    background-color: var(--surface-3) !important;
-    color: var(--accent) !important;
-}
-
-/* ---------- Chat input ---------- */
-div[data-testid="stChatInput"] {
-    background-color: transparent !important;
-    padding-bottom: 8px !important;
-}
-
-div[data-testid="stChatInput"] > div {
-    background-color: var(--surface-2) !important;
-    border: 1px solid var(--border-strong) !important;
-    border-radius: 14px !important;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35) !important;
-}
-
-div[data-testid="stChatInput"] > div:focus-within {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 0 3px var(--accent-soft), 0 6px 24px rgba(0, 0, 0, 0.4) !important;
-}
-
-div[data-testid="stChatInput"] textarea {
-    font-size: 14.5px !important;
-    line-height: 1.5 !important;
-}
-
-div[data-testid="stChatInput"] button {
-    color: var(--accent) !important;
-    background-color: transparent !important;
-}
-
-div[data-testid="stChatInput"] button:hover { background-color: var(--accent-soft) !important; }
-div[data-testid="stChatInput"] button svg { fill: var(--accent) !important; }
-
-/* ---------- Code / JSON ---------- */
-pre, code { font-family: 'JetBrains Mono', monospace !important; }
-
-[data-testid="stCode"], [data-testid="stJson"] {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-}
-
-/* ---------- Footer ---------- */
-.app-footer {
-    text-align: center;
-    color: var(--text-faint);
-    font-size: 12px;
-    line-height: 1.7;
-    padding-top: 4px;
-}
-
-/* ---------- Mobile ---------- */
-@media (max-width: 768px) {
-    .block-container { padding-top: 1.2rem; }
-    .brand-title { font-size: 21px; }
-    .metric-value { font-size: 22px; }
-}
-
-/* ---------- FLOATING COPILOT ACTION BUTTON (FAB - WHEN COLLAPSED) ---------- */
-div[class*="st-key-floating_copilot_fab_container"] {
-    position: fixed !important;
-    bottom: 24px !important;
-    right: 24px !important;
-    z-index: 999999 !important;
-    width: auto !important;
-    display: block !important;
-}
-
-div[class*="st-key-floating_copilot_fab_container"] button {
-    background: linear-gradient(135deg, #f5b83d 0%, #e08b1b 100%) !important;
-    color: #080d19 !important;
-    font-weight: 750 !important;
-    font-size: 14.5px !important;
-    border-radius: 999px !important;
-    padding: 12px 22px !important;
-    border: 2px solid #fde68a !important;
-    box-shadow: 0 10px 32px rgba(245, 184, 61, 0.45), 0 0 18px rgba(245, 184, 61, 0.3) !important;
-    cursor: pointer !important;
-    letter-spacing: -0.01em !important;
-    animation: fab-pulse 2.6s infinite !important;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-}
-
-div[class*="st-key-floating_copilot_fab_container"] button:hover {
-    transform: translateY(-3px) scale(1.05) !important;
-    box-shadow: 0 14px 40px rgba(245, 184, 61, 0.7), 0 0 26px rgba(245, 184, 61, 0.5) !important;
-    background: linear-gradient(135deg, #ffd066 0%, #f5b83d 100%) !important;
-}
-
-@keyframes fab-pulse {
-    0% { box-shadow: 0 8px 24px rgba(245, 184, 61, 0.45), 0 0 0 0 rgba(245, 184, 61, 0.7); }
-    70% { box-shadow: 0 10px 30px rgba(245, 184, 61, 0.55), 0 0 0 12px rgba(245, 184, 61, 0); }
-    100% { box-shadow: 0 8px 24px rgba(245, 184, 61, 0.45), 0 0 0 0 rgba(245, 184, 61, 0); }
-}
-
-/* ---------- FLOATING AI CHATBOT WINDOW (SAME PAGE DOCK) ---------- */
+/* ---------- Floating Chat Window ---------- */
 div[class*="st-key-floating_copilot_window"] {
     position: fixed !important;
     bottom: 20px !important;
     right: 20px !important;
-    width: 420px !important;
-    max-width: calc(100vw - 28px) !important;
-    height: 520px !important;
-    max-height: calc(100vh - 36px) !important;
-    background-color: #0d1527 !important;
-    border: 2px solid #2d3b57 !important;
-    border-radius: 18px !important;
-    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.92), 0 0 30px rgba(245, 184, 61, 0.25) !important;
+    width: 400px !important;
+    max-width: calc(100vw - 24px) !important;
+    height: 500px !important;
+    background-color: var(--surface) !important;
+    border: 1px solid var(--border-strong) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
     z-index: 999999 !important;
     display: flex !important;
     flex-direction: column !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    padding: 14px 16px 12px 16px !important;
-    backdrop-filter: blur(16px) !important;
-    animation: copilot-pop-in 0.22s ease-out !important;
+    padding: 12px !important;
 }
 
-/* Explicit high-visibility input styling */
-div[data-testid="stTextInput"] div[data-baseweb="input"],
-div[data-testid="stTextInput"] div[data-baseweb="base-input"] {
-    background-color: #111826 !important;
-    border: 1.5px solid #38bdf8 !important;
-    border-radius: 9px !important;
-}
-
-div[data-testid="stTextInput"] input {
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
-    font-size: 14.5px !important;
-    padding: 8px 12px !important;
-}
-
-div[data-testid="stTextInput"] input::placeholder {
-    color: #94a3b8 !important;
-    -webkit-text-fill-color: #94a3b8 !important;
-}
-
-@keyframes copilot-pop-in {
-    from { opacity: 0; transform: translateY(30px) scale(0.96); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* Top bar buttons (clear & close) inside the floating window */
-div[class*="st-key-copilot_close_top"] button,
-div[class*="st-key-copilot_clear_top"] button {
-    background: transparent !important;
-    border: 1px solid var(--border) !important;
-    color: var(--text-muted) !important;
-    border-radius: 8px !important;
-    height: 32px !important;
-    padding: 2px 8px !important;
-    font-size: 13px !important;
-    box-shadow: none !important;
-    min-height: 32px !important;
-}
-
-div[class*="st-key-copilot_close_top"] button:hover {
-    color: #f87171 !important;
-    border-color: #f87171 !important;
-    background: rgba(248, 113, 113, 0.12) !important;
-}
-
-div[class*="st-key-copilot_clear_top"] button:hover {
+div[class*="st-key-floating_copilot_fab_container"] button {
+    background: var(--surface-2) !important;
     color: var(--accent) !important;
-    border-color: var(--accent) !important;
-    background: var(--accent-soft) !important;
-}
-
-/* Quick prompt chips inside floating copilot */
-div[class*="st-key-copilot_chip"] button {
-    background: #151d2e !important;
-    border: 1px solid #212c42 !important;
-    color: #8b97ad !important;
-    border-radius: 8px !important;
-    font-size: 11px !important;
-    padding: 4px 6px !important;
-    height: 30px !important;
-    min-height: 30px !important;
-    box-shadow: none !important;
-    font-weight: 550 !important;
-    white-space: nowrap !important;
-    text-overflow: ellipsis !important;
-    overflow: hidden !important;
-}
-
-div[class*="st-key-copilot_chip"] button:hover {
-    background: #1b2539 !important;
-    border-color: #f5b83d !important;
-    color: #f5b83d !important;
-}
-
-/* Scroll area inside floating copilot */
-div[class*="st-key-floating_copilot_window"] [data-testid="stVerticalBlockBorderWrapper"] {
-    background: #090e1c !important;
-    border: 1px solid #1c273e !important;
-    border-radius: 12px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    border-radius: 999px !important;
+    padding: 10px 20px !important;
+    border: 1px solid var(--border-strong) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -766,9 +443,6 @@ def pill(label, value):
 # 3. SESSION STATE INITIALIZATION
 # ==========================================
 
-if "prediction_result" not in st.session_state:
-    st.session_state.prediction_result = None
-
 if "last_input" not in st.session_state:
     st.session_state.last_input = {
         "latitude": 32.75,
@@ -783,6 +457,9 @@ if "last_input" not in st.session_state:
         "snowfall_cm": 0.0,
         "humidity": 60.0
     }
+
+if "prediction_result" not in st.session_state:
+    st.session_state.prediction_result = None
 
 if "chat_messages" not in st.session_state:
     st.session_state.chat_messages = [
@@ -1373,8 +1050,8 @@ else:
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                 <span style="font-size: 20px;">🤖</span>
                 <div>
-                    <div style="font-weight: 750; font-size: 15px; color: #f5b83d; line-height: 1.2;">AI Chatbot</div>
-                    <div style="font-size: 11px; color: #8b97ad;"><span style="color: #4ade80;">● Online</span> &middot; Ask anything</div>
+                    <div style="font-weight: 700; font-size: 14.5px; color: #e0e0e0; line-height: 1.2;">AI Chatbot</div>
+                    <div style="font-size: 11px; color: #a0a0a0;"><span style="color: #81b29a;">● Online</span> &middot; Ask anything</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1394,10 +1071,10 @@ else:
         with st.container(height=290):
             if not st.session_state.floating_chat_history:
                 st.markdown("""
-                <div style="text-align: center; padding: 24px 10px; color: #8b97ad;">
-                    <div style="font-size: 34px; margin-bottom: 6px;">🤖</div>
-                    <div style="font-weight: 700; color: #e6e9f0; font-size: 15px;">AI Chatbot</div>
-                    <div style="font-size: 12.5px; margin-top: 4px; line-height: 1.4;">
+                <div style="text-align: center; padding: 24px 10px; color: #a0a0a0;">
+                    <div style="font-size: 32px; margin-bottom: 6px;">🤖</div>
+                    <div style="font-weight: 600; color: #e0e0e0; font-size: 14px;">AI Chatbot</div>
+                    <div style="font-size: 12px; margin-top: 4px; line-height: 1.4;">
                         Ask me anything! Type your question below and click <b>Submit</b>.
                     </div>
                 </div>
